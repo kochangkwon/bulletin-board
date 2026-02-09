@@ -1,0 +1,91 @@
+import { useState } from 'react';
+import { commentsAPI } from '../services/api';
+import './CommentForm.css';
+
+function CommentForm({ postId, onCommentAdded }) {
+  const [formData, setFormData] = useState({
+    content: '',
+    author: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.content.trim() || !formData.author.trim()) {
+      setError('All fields are required');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      await commentsAPI.create(postId, formData);
+
+      // Reset form
+      setFormData({
+        content: '',
+        author: '',
+      });
+
+      onCommentAdded();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="comment-form">
+      <h4>Add a Comment</h4>
+
+      {error && <div className="error-message">{error}</div>}
+
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <input
+            type="text"
+            name="author"
+            value={formData.author}
+            onChange={handleChange}
+            placeholder="Your name"
+            maxLength={50}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <textarea
+            name="content"
+            value={formData.content}
+            onChange={handleChange}
+            placeholder="Write your comment here"
+            rows={3}
+            maxLength={500}
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={loading}
+        >
+          {loading ? 'Posting...' : 'Post Comment'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default CommentForm;

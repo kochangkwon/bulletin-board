@@ -1,0 +1,79 @@
+import { useState } from 'react';
+import './App.css';
+import PostList from './components/PostList';
+import PostDetail from './components/PostDetail';
+import PostForm from './components/PostForm';
+
+function App() {
+  const [currentView, setCurrentView] = useState('list'); // 'list', 'detail', 'create', 'edit'
+  const [selectedPostId, setSelectedPostId] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleViewPost = (postId) => {
+    setSelectedPostId(postId);
+    setCurrentView('detail');
+  };
+
+  const handleCreatePost = () => {
+    setCurrentView('create');
+  };
+
+  const handleEditPost = (postId) => {
+    setSelectedPostId(postId);
+    setCurrentView('edit');
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedPostId(null);
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>📋 Bulletin Board</h1>
+        {currentView !== 'list' && (
+          <button onClick={handleBackToList} className="btn-back">
+            ← Back to List
+          </button>
+        )}
+      </header>
+
+      <main className="app-main">
+        {currentView === 'list' && (
+          <PostList
+            onViewPost={handleViewPost}
+            onCreatePost={handleCreatePost}
+            refreshTrigger={refreshTrigger}
+          />
+        )}
+
+        {currentView === 'detail' && (
+          <PostDetail
+            postId={selectedPostId}
+            onEdit={handleEditPost}
+            onBack={handleBackToList}
+          />
+        )}
+
+        {currentView === 'create' && (
+          <PostForm
+            onSuccess={handleBackToList}
+            onCancel={handleBackToList}
+          />
+        )}
+
+        {currentView === 'edit' && (
+          <PostForm
+            postId={selectedPostId}
+            onSuccess={handleBackToList}
+            onCancel={handleBackToList}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;

@@ -1,0 +1,132 @@
+import { useState, useEffect } from 'react';
+import { postsAPI, commentsAPI } from '../services/api';
+import CommentForm from './CommentForm';
+import './PostDetail.css';
+
+function PostDetail({ postId, onEdit, onBack }) {
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchPostAndComments();
+  }, [postId]);
+
+  const fetchPostAndComments = async () => {
+    try {
+      setLoading(true);
+      const [postResponse, commentsResponse] = await Promise.all([
+        postsAPI.getById(postId),
+        commentsAPI.getByPostId(postId),
+      ]);
+      setPost(postResponse.data);
+      setComments(commentsResponse.data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
+    try {
+      await postsAPI.delete(postId);
+      alert('Post deleted successfully');
+      onBack();
+    } catch (err) {
+      alert('Failed to delete post: ' + err.message);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    try {
+      await commentsAPI.delete(commentId);
+      setComments(comments.filter(c => c.id !== commentId));
+    } catch (err) {
+      alert('Failed to delete comment: ' + err.message);
+    }
+  };
+
+  const handleCommentAdded = () => {
+    fetchPostAndComments();
+  };
+
+  if (loading) {
+    return <div className="loading">Loading post...</div>;
+  }
+
+  if (error) {
+    return <div className="error">Error: {error}</div>;
+  }
+
+  if (!post) {
+    return <div className="error">Post not found</div>;
+  }
+
+  return (
+    <div className="post-detail">
+      <div className="post-content">
+        <div className="post-header">
+          <h2>{post.title}</h2>
+          <div className="post-actions">
+            <button onClick={() => onEdit(postId)} className="btn-secondary">
+              Edit
+            </button>
+            <button onClick={handleDelete} className="btn-danger">
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <div className="post-meta">
+          <span className="author">By {post.author}</span>
+          <span className="date">
+            {new Date(post.created_at).toLocaleString()}
+          </span>
+        </div>
+
+        <div className="post-body">
+          <p>{post.content}</p>
+        </div>
+      </div>
+
+      <div className="comments-section">
+        <h3>Comments ({comments.length})</h3>
+
+        <CommentForm postId={postId} onCommentAdded={handleCommentAdded} />
+
+        <div className="comments-list">
+          {comments.map(comment => (
+            <div key={comment.id} className="comment-item">
+              <div className="comment-header">
+                <span className="comment-author">{comment.author}</span>
+                <span className="comment-date">
+                  {new Date(comment.created_at).toLocaleString()}
+                </span>
+                <button
+                  onClick={() => handleDeleteComment(comment.id)}
+                  className="btn-delete-comment"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="comment-content">{comment.content}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default PostDetail;
