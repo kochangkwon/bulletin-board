@@ -15,13 +15,13 @@ class Comment {
     return db.prepare('SELECT * FROM comments WHERE id = ?').get(id);
   }
 
-  // 새 댓글 생성 (대댓글 지원)
+  // 새 댓글 생성
   static create(data) {
-    const { post_id, content, author, parent_id } = data;
+    const { post_id, content, author } = data;
     const result = db.prepare(`
-      INSERT INTO comments (post_id, content, author, parent_id)
-      VALUES (?, ?, ?, ?)
-    `).run(post_id, content, author, parent_id || null);
+      INSERT INTO comments (post_id, content, author)
+      VALUES (?, ?, ?)
+    `).run(post_id, content, author);
 
     return this.getById(result.lastInsertRowid);
   }

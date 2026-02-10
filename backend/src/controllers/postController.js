@@ -1,5 +1,7 @@
 const Post = require('../models/Post');
 const { validationResult } = require('express-validator');
+const { getInstance: getAIResponseService } = require('../services/aiResponseService');
+const logger = require('../utils/logger');
 
 // 모든 게시글 조회
 exports.getAllPosts = (req, res) => {
@@ -62,10 +64,27 @@ exports.createPost = (req, res) => {
 
     const post = Post.create(req.body);
 
+    // 즉시 응답 (사용자는 게시글 생성 완료 응답을 바로 받음)
     res.status(201).json({
       success: true,
       message: '게시글이 생성되었습니다',
       data: post
+    });
+
+    // [비동기] AI 답변 생성 (응답 후 백그라운드에서 실행)
+    // 사용자는 이미 응답을 받았으므로 AI 답변 생성을 기다리지 않음
+    setImmediate(async () => {
+      try {
+        const aiResponseService = getAIResponseService();
+        await aiResponseService.generateResponse(post);
+      } catch (error) {
+        // AI 답변 생성 실패는 로그만 기록하고 사용자에게 영향 없음
+        logger.error('AI 답변 생성 중 예외 발생', {
+          postId: post.id,
+          error: error.message,
+          stack: error.stack
+        });
+      }
     });
   } catch (error) {
     res.status(500).json({
