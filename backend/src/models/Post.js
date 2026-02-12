@@ -6,23 +6,36 @@ class Post {
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT id, title, content, author, created_at, updated_at
-      FROM posts
+      SELECT
+        p.id,
+        p.title,
+        p.content,
+        p.author,
+        p.created_at,
+        p.updated_at,
+        CASE
+          WHEN c.id IS NOT NULL THEN 1
+          ELSE 0
+        END as has_ai_response
+      FROM posts p
+      LEFT JOIN comments c
+        ON p.id = c.post_id
+        AND c.author = 'AI'
     `;
-    let countQuery = 'SELECT COUNT(*) as count FROM posts';
+    let countQuery = 'SELECT COUNT(DISTINCT p.id) as count FROM posts p';
     const params = [];
     const countParams = [];
 
     // 검색어가 있는 경우 WHERE 절 추가
     if (search && search.trim()) {
       const searchTerm = `%${search.trim()}%`;
-      query += ` WHERE title LIKE ? OR content LIKE ? OR author LIKE ?`;
-      countQuery += ` WHERE title LIKE ? OR content LIKE ? OR author LIKE ?`;
+      query += ` WHERE p.title LIKE ? OR p.content LIKE ? OR p.author LIKE ?`;
+      countQuery += ` WHERE p.title LIKE ? OR p.content LIKE ? OR p.author LIKE ?`;
       params.push(searchTerm, searchTerm, searchTerm);
       countParams.push(searchTerm, searchTerm, searchTerm);
     }
 
-    query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+    query += ` GROUP BY p.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
     const posts = db.prepare(query).all(...params);

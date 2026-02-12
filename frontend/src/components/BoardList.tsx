@@ -10,7 +10,7 @@ import {
 } from './ui/table'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { ChevronLeft, ChevronRight, Search, FileText, PenSquare } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, FileText, Bot } from 'lucide-react'
 import type { Post, PaginationResult } from '../types/common.types'
 
 interface BoardListProps {
@@ -162,6 +162,13 @@ function BoardList({ onViewPost, onCreatePost, refreshTrigger }: BoardListProps)
                         <span className="text-sm text-gray-900 hover:underline">
                           {post.title}
                         </span>
+                        {post.has_ai_response === 1 && (
+                          <Bot
+                            className="h-4 w-4 text-blue-500 inline-block ml-1"
+                            aria-label="AI 답변 있음"
+                            title="AI 답변 있음"
+                          />
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-center text-sm text-gray-600">

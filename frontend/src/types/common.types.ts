@@ -29,6 +29,7 @@ export interface Post {
   author: string
   created_at: string
   updated_at: string
+  has_ai_response?: number  // AI 답변 여부 (0: 없음, 1: 있음)
 }
 
 export interface Comment {
