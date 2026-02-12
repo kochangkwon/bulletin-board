@@ -1,32 +1,28 @@
 import { create } from 'zustand'
 
+/**
+ * UI 상태 관리 Store
+ *
+ * React Router로 네비게이션 상태를 관리하므로
+ * 이 store는 전역 UI 상태 (로딩, 모달 등)만 관리합니다.
+ *
+ * 이전에 관리하던 상태:
+ * - currentView → React Router (URL)로 대체
+ * - selectedPostId → React Router (URL params)로 대체
+ */
 interface UIStore {
-  currentView: 'list' | 'detail' | 'create' | 'edit'
-  selectedPostId: number | null
+  // 전역 로딩 상태 (향후 사용 가능)
   isLoading: boolean
-
-  setCurrentView: (view: 'list' | 'detail' | 'create' | 'edit') => void
-  setSelectedPostId: (id: number | null) => void
   setIsLoading: (loading: boolean) => void
 
-  // Convenience actions
-  viewPost: (postId: number) => void
-  createPost: () => void
-  editPost: (postId: number) => void
-  backToList: () => void
+  // 향후 추가 가능한 UI 상태
+  // isModalOpen: boolean
+  // modalContent: ReactNode | null
+  // openModal: (content: ReactNode) => void
+  // closeModal: () => void
 }
 
 export const useUIStore = create<UIStore>((set) => ({
-  currentView: 'list',
-  selectedPostId: null,
   isLoading: false,
-
-  setCurrentView: (view) => set({ currentView: view }),
-  setSelectedPostId: (id) => set({ selectedPostId: id }),
   setIsLoading: (loading) => set({ isLoading: loading }),
-
-  viewPost: (postId) => set({ currentView: 'detail', selectedPostId: postId }),
-  createPost: () => set({ currentView: 'create', selectedPostId: null }),
-  editPost: (postId) => set({ currentView: 'edit', selectedPostId: postId }),
-  backToList: () => set({ currentView: 'list', selectedPostId: null }),
 }))

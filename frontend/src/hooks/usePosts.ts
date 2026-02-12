@@ -41,7 +41,7 @@ export function useCreatePost() {
 
   return useMutation({
     mutationFn: (data: PostFormData) => postsAPI.create(data),
-    onMutate: async (newPost) => {
+    onMutate: async () => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: postsKeys.lists() })
 
@@ -55,7 +55,7 @@ export function useCreatePost() {
 
       return { previousPosts }
     },
-    onError: (err, newPost, context) => {
+    onError: (_err, _newPost, context) => {
       // Rollback on error
       if (context?.previousPosts) {
         queryClient.setQueryData(postsKeys.lists(), context.previousPosts)
@@ -91,7 +91,7 @@ export function useUpdatePost() {
 
       return { previousPost }
     },
-    onError: (err, { id }, context) => {
+    onError: (_err, { id }, context) => {
       if (context?.previousPost) {
         queryClient.setQueryData(postsKeys.detail(id), context.previousPost)
       }
@@ -129,7 +129,7 @@ export function useDeletePost() {
 
       return { previousPosts }
     },
-    onError: (err, id, context) => {
+    onError: (_err, _id, context) => {
       if (context?.previousPosts) {
         queryClient.setQueryData(postsKeys.lists(), context.previousPosts)
       }
